@@ -6,7 +6,7 @@
     <ProductVersion>10.0.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C4CE5877-18FA-4220-BDB7-C021880BCC0A}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>TestSqlClient</RootNamespace>
     <AssemblyName>TestSqlClient</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -40,15 +40,20 @@
       <Private>False</Private>
       <Package>/work/async/mono/mcs/class/lib/net_4_5/System.Configuration.dll</Package>
     </Reference>
+    <Reference Include="nunit.framework, Version=2.4.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
+      <Private>False</Private>
+      <Package>/work/async/mono/mcs/class/lib/net_4_5/nunit.framework.dll</Package>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="TestConnection.cs" />
+    <Compile Include="AssertEx.cs" />
+    <Compile Include="TestOpenAsyncErrors.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="TestSqlClient.exe.config">
+    <None Include="TestSqlClient.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
