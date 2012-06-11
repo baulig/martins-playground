@@ -100,7 +100,7 @@ namespace TestSqlClient
 		}
 
 		[Test]
-		[Category("Test")]
+		[Category("Database")]
 		public void MustCloseReader ()
 		{
 			var cmd = new SqlCommand ("SELECT * FROM test", Connection);
@@ -117,7 +117,7 @@ namespace TestSqlClient
 		}
 
 		[Test]
-		[Category("Test")]
+		[Category("Database")]
 		public void MustCloseReader2 ()
 		{
 			var cmd = new SqlCommand ("SELECT * FROM test", Connection);
@@ -131,6 +131,21 @@ namespace TestSqlClient
 			} finally {
 				task.Result.Close ();
 			}
+		}
+
+		[Test]
+		[Category("Database")]
+		public void MultiReadTest ()
+		{
+			var cmd = CreateCommand ("SELECT * FROM test");
+			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			Assert.That (reader.FieldCount > 0);
+			reader.Close ();
+
+			cmd = CreateCommand ("SELECT * FROM test");
+			reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			Assert.That (reader.FieldCount > 0);
+			reader.Close ();
 		}
 
 		[Test]
@@ -227,7 +242,6 @@ namespace TestSqlClient
 
 			var select = CreateCommand ("SELECT * FROM test");
 			var reader = select.ExecuteReader ();
-			// var reader = AssertEx.TaskCompleted (select.ExecuteReaderAsync (), NetworkTimeout);
 			reader.Close ();
 		}
 
@@ -286,6 +300,20 @@ namespace TestSqlClient
 			cmd.Parameters.Add (param);
 
 			AssertEx.TaskCompleted (cmd.ExecuteNonQueryAsync (), TimeSpan.FromSeconds (15));
+		}
+
+		[Test]
+		[Category("Database")]
+		public void TestXmlReader ()
+		{
+			var cmd = CreateCommand ("SELECT * FROM test FOR XML AUTO");
+			var xml = AssertEx.TaskCompleted (cmd.ExecuteXmlReaderAsync (), NetworkTimeout);
+			xml.Close ();
+
+			cmd = CreateCommand ("SELECT * FROM test");
+			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			Assert.That (reader.FieldCount > 0);
+			reader.Close ();
 		}
 	}
 }

@@ -44,6 +44,10 @@
       <Private>False</Private>
       <Package>/work/async/mono/mcs/class/lib/net_4_5/nunit.framework.dll</Package>
     </Reference>
+    <Reference Include="System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+      <Private>False</Private>
+      <Package>/work/async/mono/mcs/class/lib/net_4_5/System.Xml.dll</Package>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
