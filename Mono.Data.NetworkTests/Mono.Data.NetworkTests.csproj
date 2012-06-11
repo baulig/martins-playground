@@ -62,5 +62,6 @@
     <None Include="Mono.Data.NetworkTests.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="README.txt" />
   </ItemGroup>
 </Project>
