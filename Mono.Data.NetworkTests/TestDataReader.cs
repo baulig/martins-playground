@@ -39,37 +39,17 @@ using NUnit.Framework;
 namespace Mono.Data.NetworkTests
 {
 	[TestFixture]
-	public class TestDataReader
+	public class TestDataReader : DatabaseTestFixture
 	{
-		public SqlConnection Connection {
-			get;
-			private set;
-		}
-
 		public string TableName {
 			get;
 			private set;
 		}
 
-		SqlCommand CreateCommand (string cmdText, params object[] args)
-		{
-			return new SqlCommand (string.Format (cmdText, args), Connection);
-		}
-
-		void ExecuteNonQuery (string cmdText, params object[] args)
-		{
-			var sql = string.Format (cmdText, args);
-			var cmd = new SqlCommand (sql, Connection);
-			AssertEx.TaskCompleted (
-				cmd.ExecuteNonQueryAsync (), NetworkConfig.NetworkTimeout, sql);
-		}
-
 		[SetUp]
-		public void SetUp ()
+		public override void SetUp ()
 		{
-			Connection = new SqlConnection (NetworkConfig.ConnectionString);
-			AssertEx.TaskCompleted (Connection.OpenAsync (), NetworkConfig.NetworkTimeout,
-			                        "Database connection failed.");
+			base.SetUp ();
 
 			TableName = string.Format ("tmp{0}", DateTime.Now.Ticks);
 			ExecuteNonQuery ("CREATE TABLE {0} (a int, b text)", TableName);
@@ -79,10 +59,10 @@ namespace Mono.Data.NetworkTests
 		}
 
 		[TearDown]
-		public void TearDown ()
+		public override void TearDown ()
 		{
 			ExecuteNonQuery ("DROP TABLE {0}", TableName);
-			Connection.Close ();
+			base.TearDown ();
 		}
 
 		[Test]

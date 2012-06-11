@@ -57,6 +57,7 @@
     <Compile Include="TestDatabase.cs" />
     <Compile Include="NetworkConfig.cs" />
     <Compile Include="TestDataReader.cs" />
+    <Compile Include="DatabaseTestFixture.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

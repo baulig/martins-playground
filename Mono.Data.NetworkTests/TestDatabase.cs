@@ -39,39 +39,8 @@ using NUnit.Framework;
 namespace Mono.Data.NetworkTests
 {
 	[TestFixture]
-	public class TestDatabase
+	public class TestDatabase : DatabaseTestFixture
 	{
-		public SqlConnection Connection {
-			get;
-			private set;
-		}
-
-		[SetUp]
-		public void SetUp ()
-		{
-			Connection = new SqlConnection (NetworkConfig.ConnectionString);
-			Assert.That (Connection.OpenAsync ().Wait (NetworkConfig.NetworkTimeout),
-			             "Database connection failed.");
-		}
-
-		[TearDown]
-		public void TearDown ()
-		{
-			Connection.Close ();
-		}
-
-		SqlCommand CreateCommand (string text)
-		{
-			var cmd = new SqlCommand (text, Connection);
-			cmd.CommandTimeout = NetworkConfig.CommandTimeout;
-			return cmd;
-		}
-
-		SqlCommand CreateCommand (string text, params object[] args)
-		{
-			return CreateCommand (string.Format (text, args));
-		}
-
 		[Test]
 		public void CreateTable ()
 		{
