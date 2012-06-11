@@ -8,7 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using NUnit.Framework;
 
-namespace TestSqlClient
+namespace Mono.Data.NetworkTests
 {
 	[TestFixture]
 	public class TestOpenAsyncErrors

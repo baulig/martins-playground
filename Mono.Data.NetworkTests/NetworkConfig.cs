@@ -1,7 +1,7 @@
 using System;
 using System.Configuration;
 
-namespace TestSqlClient
+namespace Mono.Data.NetworkTests
 {
 	public static class NetworkConfig
 	{

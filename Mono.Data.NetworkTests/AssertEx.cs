@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace TestSqlClient
+namespace Mono.Data.NetworkTests
 {
 	public static class AssertEx
 	{
