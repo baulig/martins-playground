@@ -100,11 +100,10 @@ namespace TestSqlClient
 		}
 
 		[Test]
-		[Category("NotWorking")]
+		[Category("Test")]
 		public void MustCloseReader ()
 		{
 			var cmd = new SqlCommand ("SELECT * FROM test", Connection);
-			Console.WriteLine ("TEST: {0}", cmd.CommandTimeout);
 			var task = cmd.ExecuteReaderAsync ();
 			Assert.That (task.Wait (NetworkTimeout));
 
@@ -112,6 +111,23 @@ namespace TestSqlClient
 				var errorCmd = CreateCommand ("SELECT * FROM test");
 				AssertEx.TaskFailed<InvalidOperationException> (
 					errorCmd.ExecuteNonQueryAsync (), NetworkTimeout);
+			} finally {
+				task.Result.Close ();
+			}
+		}
+
+		[Test]
+		[Category("Test")]
+		public void MustCloseReader2 ()
+		{
+			var cmd = new SqlCommand ("SELECT * FROM test", Connection);
+			var task = cmd.ExecuteReaderAsync ();
+			Assert.That (task.Wait (NetworkTimeout));
+
+			try {
+				var errorCmd = CreateCommand ("SELECT * FROM test");
+				AssertEx.TaskFailed<InvalidOperationException> (
+					errorCmd.ExecuteReaderAsync (), NetworkTimeout);
 			} finally {
 				task.Result.Close ();
 			}
@@ -190,7 +206,6 @@ namespace TestSqlClient
 		{
 			var cmd = new SqlCommand ("WAITFOR DELAY '00:00:05'", Connection);
 			var task = cmd.ExecuteNonQueryAsync ();
-			Console.WriteLine ("TEST WAIT");
 			AssertEx.TaskCompleted (task, TimeSpan.FromSeconds (15));
 		}
 
@@ -233,7 +248,6 @@ namespace TestSqlClient
 		[Category("Cancel")]
 		public void CancelAndRead ()
 		{
-			Console.Error.WriteLine ("TEST CANCEL AND TEST");
 			var cmd = CreateCommand ("WAITFOR DELAY '00:05:00'");
 			var cts = new CancellationTokenSource (NetworkTimeout);
 			var task = cmd.ExecuteNonQueryAsync (cts.Token);
@@ -245,7 +259,7 @@ namespace TestSqlClient
 		}
 
 		[Test]
-		[Category("Test")]
+		[Category("Database")]
 		public void TestParams ()
 		{
 			var cmd = CreateCommand ("SELECT * FROM test WHERE a = @a");
@@ -260,7 +274,7 @@ namespace TestSqlClient
 		}
 
 		[Test]
-		[Category("Test")]
+		[Category("Database")]
 		public void DelayProc ()
 		{
 			var cmd = CreateCommand ("Delay");
