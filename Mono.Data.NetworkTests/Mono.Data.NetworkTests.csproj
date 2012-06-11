@@ -56,6 +56,7 @@
     <Compile Include="TestOpenAsyncErrors.cs" />
     <Compile Include="TestDatabase.cs" />
     <Compile Include="NetworkConfig.cs" />
+    <Compile Include="TestDataReader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

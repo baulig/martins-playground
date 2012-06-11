@@ -62,6 +62,11 @@ namespace Mono.Data.NetworkTests
 			}
 		}
 
+		public static void TaskCompleted (Task task)
+		{
+			TaskCompleted (task, NetworkConfig.NetworkTimeout, null);
+		}
+
 		public static void TaskCompleted (Task task, int timeout)
 		{
 			TaskCompleted (task, timeout, null);
@@ -90,6 +95,11 @@ namespace Mono.Data.NetworkTests
 			} catch (Exception ex) {
 				Assert.Fail (string.Format ("Task threw exception '{0}'{1}", ex, suffix));
 			}
+		}
+
+		public static TResult TaskCompleted<TResult> (Task<TResult> task)  
+		{
+			return TaskCompleted (task, NetworkConfig.NetworkTimeout, null);
 		}
 
 		public static TResult TaskCompleted<TResult> (Task<TResult> task, int timeout)
@@ -121,6 +131,11 @@ namespace Mono.Data.NetworkTests
 				Assert.Fail (string.Format ("Task threw exception '{0}'{1}", ex, suffix));
 				throw;
 			}
+		}
+
+		public static void TaskFailed<T> (Task task)
+		{
+			TaskFailed<T> (task, NetworkConfig.NetworkTimeout, null);
 		}
 
 		public static void TaskFailed<T> (Task task, int timeout)
