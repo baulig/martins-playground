@@ -55,6 +55,7 @@
     <Compile Include="AssertEx.cs" />
     <Compile Include="TestOpenAsyncErrors.cs" />
     <Compile Include="TestDatabase.cs" />
+    <Compile Include="NetworkConfig.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

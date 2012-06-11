@@ -13,49 +13,16 @@ namespace TestSqlClient
 	[TestFixture]
 	public class TestDatabase
 	{
-		public static string ConnectionString {
-			get { return ConfigurationManager.AppSettings ["ConnectionString"]; }
-		}
-
 		public SqlConnection Connection {
 			get;
 			private set;
 		}
 
-		public static TimeSpan NetworkTimeout {
-			get {
-				if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
-					// We're on the same machine.
-					return TimeSpan.FromMilliseconds (750);
-				} else {
-					// We're using a network connection.
-					return TimeSpan.FromMilliseconds (2500);
-				}
-			}
-		}
-
-		public static TimeSpan LongTimeout {
-			get {
-				if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
-					// Must be more than one second.
-					return TimeSpan.FromMilliseconds (2500);
-				} else {
-					return TimeSpan.FromMilliseconds (6000);
-				}
-			}
-		}
-
-		public int CommandTimeout {
-			get {
-				return (int)(NetworkTimeout.TotalMilliseconds + 999) / 1000;
-			}
-		}
-
 		[SetUp]
 		public void SetUp ()
 		{
-			Connection = new SqlConnection (ConnectionString);
-			Assert.That (Connection.OpenAsync ().Wait (NetworkTimeout),
+			Connection = new SqlConnection (NetworkConfig.ConnectionString);
+			Assert.That (Connection.OpenAsync ().Wait (NetworkConfig.NetworkTimeout),
 			             "Database connection failed.");
 		}
 
@@ -68,7 +35,7 @@ namespace TestSqlClient
 		SqlCommand CreateCommand (string text)
 		{
 			var cmd = new SqlCommand (text, Connection);
-			cmd.CommandTimeout = CommandTimeout;
+			cmd.CommandTimeout = NetworkConfig.CommandTimeout;
 			return cmd;
 		}
 
@@ -83,10 +50,10 @@ namespace TestSqlClient
 			var tmpname = string.Format ("tmp{0}", DateTime.Now.Ticks);
 
 			var create = CreateCommand ("CREATE TABLE {0} (a int)", tmpname);
-			AssertEx.TaskCompleted (create.ExecuteNonQueryAsync (), NetworkTimeout);
+			AssertEx.TaskCompleted (create.ExecuteNonQueryAsync (), NetworkConfig.NetworkTimeout);
 
 			var drop = CreateCommand ("DROP TABLE {0}", tmpname);
-			AssertEx.TaskCompleted (drop.ExecuteNonQueryAsync (), NetworkTimeout);
+			AssertEx.TaskCompleted (drop.ExecuteNonQueryAsync (), NetworkConfig.NetworkTimeout);
 		}
 
 		[Test]
@@ -94,7 +61,7 @@ namespace TestSqlClient
 		public void ReadTest ()
 		{
 			var cmd = CreateCommand ("SELECT * FROM test");
-			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			Assert.That (reader.FieldCount > 0);
 			reader.Close ();
 		}
@@ -105,12 +72,12 @@ namespace TestSqlClient
 		{
 			var cmd = new SqlCommand ("SELECT * FROM test", Connection);
 			var task = cmd.ExecuteReaderAsync ();
-			Assert.That (task.Wait (NetworkTimeout));
+			Assert.That (task.Wait (NetworkConfig.NetworkTimeout));
 
 			try {
 				var errorCmd = CreateCommand ("SELECT * FROM test");
 				AssertEx.TaskFailed<InvalidOperationException> (
-					errorCmd.ExecuteNonQueryAsync (), NetworkTimeout);
+					errorCmd.ExecuteNonQueryAsync (), NetworkConfig.NetworkTimeout);
 			} finally {
 				task.Result.Close ();
 			}
@@ -122,12 +89,12 @@ namespace TestSqlClient
 		{
 			var cmd = new SqlCommand ("SELECT * FROM test", Connection);
 			var task = cmd.ExecuteReaderAsync ();
-			Assert.That (task.Wait (NetworkTimeout));
+			Assert.That (task.Wait (NetworkConfig.NetworkTimeout));
 
 			try {
 				var errorCmd = CreateCommand ("SELECT * FROM test");
 				AssertEx.TaskFailed<InvalidOperationException> (
-					errorCmd.ExecuteReaderAsync (), NetworkTimeout);
+					errorCmd.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			} finally {
 				task.Result.Close ();
 			}
@@ -138,23 +105,23 @@ namespace TestSqlClient
 		public void MultiReadTest ()
 		{
 			var cmd = CreateCommand ("SELECT * FROM test");
-			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			Assert.That (reader.FieldCount > 0);
 			reader.Close ();
 
 			cmd = CreateCommand ("SELECT * FROM test");
-			reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			Assert.That (reader.FieldCount > 0);
 			reader.Close ();
 		}
 
 		[Test]
 		[Category("Cancel")]
-		public void TestCommandTimeout ()
+		public void CommandTimeout ()
 		{
 			var cmd = CreateCommand ("WAITFOR DELAY '00:00:15'");
 			AssertEx.TaskFailed<SqlException> (
-				cmd.ExecuteNonQueryAsync (), LongTimeout);
+				cmd.ExecuteNonQueryAsync (), NetworkConfig.LongTimeout);
 		}
 
 		[Test]
@@ -163,14 +130,14 @@ namespace TestSqlClient
 		public void SyncTimeout ()
 		{
 			var cmd = new SqlCommand ("WAITFOR DELAY '00:00:30'", Connection);
-			cmd.CommandTimeout = CommandTimeout;
+			cmd.CommandTimeout = NetworkConfig.CommandTimeout;
 			var start = DateTime.Now;
 
 			try {
 				cmd.ExecuteNonQuery ();
 				Assert.Fail ();
 			} catch (SqlException) {
-				Assert.That (DateTime.Now - start < TimeSpan.FromSeconds (2 * CommandTimeout));
+				Assert.That (DateTime.Now - start < TimeSpan.FromSeconds (2 * NetworkConfig.CommandTimeout));
 			}
 		}
 
@@ -180,18 +147,18 @@ namespace TestSqlClient
 		public void TraditionalTimeout ()
 		{
 			var cmd = new SqlCommand ("WAITFOR DELAY '00:00:30'", Connection);
-			cmd.CommandTimeout = CommandTimeout;
+			cmd.CommandTimeout = NetworkConfig.CommandTimeout;
 			var start = DateTime.Now;
 
 			var ar = cmd.BeginExecuteNonQuery (_ => {
 				Console.WriteLine ("TRADITIONAL CALLBACK!");
 			}, null);
 
-			bool result = ar.AsyncWaitHandle.WaitOne (TimeSpan.FromSeconds (3 * CommandTimeout));
+			bool result = ar.AsyncWaitHandle.WaitOne (TimeSpan.FromSeconds (3 * NetworkConfig.CommandTimeout));
 			Console.WriteLine ("AFTER WAITING: {0} {1} {2}", DateTime.Now - start,
-			                   CommandTimeout, result);
+			                   NetworkConfig.CommandTimeout, result);
 			Assert.IsFalse (result);
-			Assert.That (DateTime.Now - start > TimeSpan.FromSeconds (2 * CommandTimeout));
+			Assert.That (DateTime.Now - start > TimeSpan.FromSeconds (2 * NetworkConfig.CommandTimeout));
 		}
 
 		[Test]
@@ -200,9 +167,9 @@ namespace TestSqlClient
 		{
 			var cmd = new SqlCommand ("WAITFOR DELAY '00:00:30'", Connection);
 			var task = cmd.ExecuteNonQueryAsync ();
-			Task.Delay (NetworkTimeout).Wait ();
+			Task.Delay (NetworkConfig.NetworkTimeout).Wait ();
 			cmd.Cancel ();
-			AssertEx.TaskFailed<SqlException> (task, LongTimeout);
+			AssertEx.TaskFailed<SqlException> (task, NetworkConfig.LongTimeout);
 		}
 
 		[Test]
@@ -210,9 +177,9 @@ namespace TestSqlClient
 		public void CancelWithToken ()
 		{
 			var cmd = new SqlCommand ("WAITFOR DELAY '00:00:15'", Connection);
-			var cts = new CancellationTokenSource (NetworkTimeout);
+			var cts = new CancellationTokenSource (NetworkConfig.NetworkTimeout);
 			AssertEx.TaskFailed<SqlException> (
-				cmd.ExecuteNonQueryAsync (cts.Token), LongTimeout);
+				cmd.ExecuteNonQueryAsync (cts.Token), NetworkConfig.LongTimeout);
 		}
 
 		[Test]
@@ -230,14 +197,14 @@ namespace TestSqlClient
 		public void SyncTimeoutAndRead ()
 		{
 			var cmd = new SqlCommand ("WAITFOR DELAY '00:05:00'", Connection);
-			cmd.CommandTimeout = CommandTimeout;
+			cmd.CommandTimeout = NetworkConfig.CommandTimeout;
 			var start = DateTime.Now;
 
 			try {
 				cmd.ExecuteNonQuery ();
 				Assert.Fail ();
 			} catch (SqlException) {
-				Assert.That (DateTime.Now - start < TimeSpan.FromSeconds (2 * CommandTimeout));
+				Assert.That (DateTime.Now - start < TimeSpan.FromSeconds (2 * NetworkConfig.CommandTimeout));
 			}
 
 			var select = CreateCommand ("SELECT * FROM test");
@@ -263,12 +230,12 @@ namespace TestSqlClient
 		public void CancelAndRead ()
 		{
 			var cmd = CreateCommand ("WAITFOR DELAY '00:05:00'");
-			var cts = new CancellationTokenSource (NetworkTimeout);
+			var cts = new CancellationTokenSource (NetworkConfig.NetworkTimeout);
 			var task = cmd.ExecuteNonQueryAsync (cts.Token);
-			AssertEx.TaskFailed<SqlException> (task, LongTimeout);
+			AssertEx.TaskFailed<SqlException> (task, NetworkConfig.LongTimeout);
 
 			var select = CreateCommand ("SELECT * FROM test");
-			var reader = AssertEx.TaskCompleted (select.ExecuteReaderAsync (), NetworkTimeout);
+			var reader = AssertEx.TaskCompleted (select.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			reader.Close ();
 		}
 
@@ -283,7 +250,7 @@ namespace TestSqlClient
 
 			cmd.Prepare ();
 
-			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			reader.Close ();
 		}
 
@@ -307,11 +274,11 @@ namespace TestSqlClient
 		public void TestXmlReader ()
 		{
 			var cmd = CreateCommand ("SELECT * FROM test FOR XML AUTO");
-			var xml = AssertEx.TaskCompleted (cmd.ExecuteXmlReaderAsync (), NetworkTimeout);
+			var xml = AssertEx.TaskCompleted (cmd.ExecuteXmlReaderAsync (), NetworkConfig.NetworkTimeout);
 			xml.Close ();
 
 			cmd = CreateCommand ("SELECT * FROM test");
-			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkTimeout);
+			var reader = AssertEx.TaskCompleted (cmd.ExecuteReaderAsync (), NetworkConfig.NetworkTimeout);
 			Assert.That (reader.FieldCount > 0);
 			reader.Close ();
 		}
