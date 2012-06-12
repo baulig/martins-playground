@@ -253,6 +253,23 @@ namespace Mono.Data.NetworkTests
 
 		[Test]
 		[Category("Database")]
+		public void TestInsert ()
+		{
+			var cmd = CreateCommand ("INSERT INTO TEST (a, b) VALUES (@a, @b)");
+
+			var a = new SqlParameter ("a", SqlDbType.Int);
+			a.Value = 99;
+			cmd.Parameters.Add (a);
+
+			var b = new SqlParameter ("b", SqlDbType.Text);
+			b.Value = "Inserted Monkey";
+			cmd.Parameters.Add (b);
+
+			ExecuteNonQuery (cmd);
+		}
+
+		[Test]
+		[Category("Database")]
 		public void DelayProc ()
 		{
 			var cmd = CreateCommand ("Delay");

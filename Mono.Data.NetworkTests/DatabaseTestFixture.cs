@@ -55,6 +55,13 @@ namespace Mono.Data.NetworkTests
 				cmd.ExecuteNonQueryAsync (), NetworkConfig.NetworkTimeout, sql);
 		}
 
+		protected void ExecuteNonQuery (SqlCommand cmd)
+		{
+			AssertEx.TaskCompleted (
+				cmd.ExecuteNonQueryAsync (), NetworkConfig.NetworkTimeout,
+				cmd.CommandText);
+		}
+
 		[SetUp]
 		public virtual void SetUp ()
 		{
