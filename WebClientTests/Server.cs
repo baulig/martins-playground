@@ -36,17 +36,16 @@ namespace WebClientTests
 
 		public async Task Run ()
 		{
-			Console.WriteLine ("LISTENING");
-
 			var context = await listener.GetContextAsync ().ConfigureAwait (false);
 			Console.WriteLine ("GOT CONTEXT: {0}", context);
 
 			var res = context.Response;
-			res.ContentLength64 = (long) Math.Pow (2, 27);
+			res.ContentLength64 = (long) Math.Pow (2, 28);
 
 			var buffer = new byte [65536];
 			res.OutputStream.Write (buffer, 0, buffer.Length);
+
+			Thread.Sleep (15000);
 		}
 	}
 }
-

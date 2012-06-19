@@ -11,6 +11,8 @@ namespace WebClientTests
 {
 	class Test
 	{
+		string tempPath;
+
 		public static void Main (string[] args)
 		{
 			var test = new Test ();
@@ -26,6 +28,19 @@ namespace WebClientTests
 		}
 
 		void Run ()
+		{
+			tempPath = Path.Combine (Path.GetTempPath (), Path.GetRandomFileName ());
+			Directory.CreateDirectory (tempPath);
+
+			Console.WriteLine ("TEMP PATH: {0}", tempPath);
+			try {
+				DoRun ();
+			} finally {
+				Directory.Delete (tempPath, true);
+			}
+		}
+
+		void DoRun ()
 		{
 			var proc = Process.GetCurrentProcess ();
 			var oneMb = (long) Math.Pow (2, 20);
@@ -64,7 +79,12 @@ namespace WebClientTests
 
 			var client = new WebClient ();
 			client.DownloadDataCompleted += (sender, e) => {
-				Console.WriteLine ("DOWNLOAD COMPLETED: {0}", e.Error);
+				Console.WriteLine ("DOWNLOAD COMPLETED: {0} {1}",
+				                   e.Cancelled, e.Error);
+			};
+			client.DownloadFileCompleted += (sender, e) => {
+				Console.WriteLine ("DOWNLOAD COMPLETE: {0} {1}",
+				                   e.Cancelled, e.Error);
 			};
 			client.DownloadProgressChanged += (sender, e) => {
 				Console.WriteLine ("PROGRESS CHANGED: {0} {1} {2}",
@@ -73,8 +93,10 @@ namespace WebClientTests
 				progress.Set ();
 			};
 
+			var file = Path.Combine (tempPath, Path.GetRandomFileName ());
+
 			var uri = new Uri ("http://localhost:" + server.Port + "/");
-			client.DownloadDataTaskAsync (uri);
+			client.DownloadFileAsync (uri, file);
 			progress.Wait (5000);
 			client.CancelAsync ();
 		}
