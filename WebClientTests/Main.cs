@@ -28,15 +28,31 @@ namespace WebClientTests
 		void Run ()
 		{
 			var proc = Process.GetCurrentProcess ();
-
 			var oneMb = (long) Math.Pow (2, 20);
 
-			for (int i = 0; i < 20; i++) {
-				Console.WriteLine ("ITERATION #{0}: {1} - {2} {3}", i,
-				                   GetThreadCount (),
-				                   proc.PrivateMemorySize64 / oneMb,
-				                   proc.VirtualMemorySize64 / oneMb);
+			var startPrivateMem = proc.PrivateMemorySize64;
+			var startVirtualMem = proc.VirtualMemorySize64;
+			var lastPrivateMem = startPrivateMem;
+			var lastVirtualMem = startVirtualMem;
+
+			for (int i = 0; i < 200; i++) {
 				Download ();
+
+				var privateMem = proc.PrivateMemorySize64 - startPrivateMem;
+				var virtualMem = proc.VirtualMemorySize64 - startVirtualMem;
+
+				var gainPrivateMem = proc.PrivateMemorySize64 - lastPrivateMem;
+				var gainVirtualMem = proc.VirtualMemorySize64 - lastVirtualMem;
+				lastPrivateMem = proc.PrivateMemorySize64;
+				lastVirtualMem = proc.VirtualMemorySize64;
+
+				Console.WriteLine ("ITERATION #{0}: {1} - {2} {3} - {4} {5}", i,
+				                   GetThreadCount (), privateMem / oneMb,
+				                   virtualMem / oneMb, gainPrivateMem / oneMb,
+				                   gainVirtualMem / oneMb);
+
+				if (Math.Max (privateMem, virtualMem) / oneMb > 2000)
+					throw new OutOfMemoryException ();
 			}
 		}
 

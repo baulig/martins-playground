@@ -42,7 +42,7 @@ namespace WebClientTests
 			Console.WriteLine ("GOT CONTEXT: {0}", context);
 
 			var res = context.Response;
-			res.ContentLength64 = (long) Math.Pow (2, 29);
+			res.ContentLength64 = (long) Math.Pow (2, 27);
 
 			var buffer = new byte [65536];
 			res.OutputStream.Write (buffer, 0, buffer.Length);
