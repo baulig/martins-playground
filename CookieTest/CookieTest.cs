@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using NUnit.Framework;
@@ -9,8 +11,10 @@ namespace Test
 	[TestFixture]
 	public class CookieTest
 	{
-		const string A = "Foo=Bar, expires=World; expires=Sat, 11-Oct-14 22:45:19 GMT, A=B";
-		const string B = "A=B=C, expires=Sat, 99-Dec-01 01:00:00 XDT; Hello=World, Foo=Bar";
+		public const string A = "Foo=Bar, expires=World; expires=Sat, 11-Oct-14 22:45:19 GMT, A=B";
+		public const string B = "A=B=C, expires=Sat, 99-Dec-01 01:00:00 XDT; Hello=World, Foo=Bar";
+		// Only the invariant culture is allowed.
+		public const string C = "Foo=Bar, expires=Montag, 21. Juni 2012 23:11:45";
 
 		[Test]
 		public void TestExpires ()
@@ -68,6 +72,38 @@ namespace Test
 			Assert.AreEqual ("Sat", res.Cookies [1].Value);
 			Assert.AreEqual ("Foo", res.Cookies [2].Name);
 			Assert.AreEqual ("Bar", res.Cookies [2].Value);
+		}
+
+		[Test]
+		public void TestLocalCulture ()
+		{
+			var old = Thread.CurrentThread.CurrentCulture;
+			try {
+				var culture = new CultureInfo ("de-DE");
+				Thread.CurrentThread.CurrentCulture = culture;
+				DoTestLocalCulture ();
+			} finally {
+				Thread.CurrentThread.CurrentCulture = old;
+			}
+		}
+
+		void DoTestLocalCulture ()
+		{
+			HttpWebResponse res;
+			using (var listener = new Listener ("Set-Cookie: " + C)) {
+				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
+				req.CookieContainer = new CookieContainer ();
+				req.Method = "POST";
+				res = (HttpWebResponse)req.GetResponse ();
+			}
+
+			Assert.AreEqual (C, res.Headers.Get ("Set-Cookie"));
+
+			Assert.AreEqual (2, res.Cookies.Count);
+			Assert.AreEqual ("Foo", res.Cookies [0].Name);
+			Assert.AreEqual ("Bar", res.Cookies [0].Value);
+			Assert.AreEqual ("expires", res.Cookies [1].Name);
+			Assert.AreEqual ("Montag", res.Cookies [1].Value);
 		}
 
 		public class Listener : IDisposable

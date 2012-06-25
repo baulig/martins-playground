@@ -36,7 +36,7 @@ using System;
 using System.Collections;
 using System.Globalization;
 
-namespace System.Net {
+namespace Test {
 
 	class CookieParser {
 		string header;
@@ -63,12 +63,31 @@ namespace System.Net {
 				return false;
 
 			name = GetCookieName ();
-			if (pos < header.Length && header [pos] == '=') {
+			if (pos >= length)
+				return true;
+
+			if (header [pos] == ';' || header [pos] == ',') {
 				pos++;
-				val = GetCookieValue ();
+				return true;
+			} else if (header [pos] != '=') {
+				// Should never happen
+				return false;
 			}
 
-			if (pos < length && header [pos] == ';')
+			pos++;
+			val = GetCookieValue ();
+
+			if (pos >= length)
+				return true;
+
+			if (name.ToLower ().Equals ("expires")) {
+				if ((header [pos] == ',') && IsWeekDay (val) && (pos +1 < length)) {
+					pos++;
+					val = val + ", " + GetCookieValue ();
+				}
+			}
+
+			if (pos < length && (header [pos] == ';' || header [pos] == ','))
 				pos++;
 
 			return true;
@@ -81,7 +100,7 @@ namespace System.Net {
 				k++;
 
 			int begin = k;
-			while (k < length && header [k] != ';' &&  header [k] != '=')
+			while (k < length && header [k] != ';' && header [k] != ',' && header [k] != '=')
 				k++;
 
 			pos = k;
@@ -105,18 +124,32 @@ namespace System.Net {
 				while (k < length && header [k] != '"')
 					k++;
 
-				for (j = k; j < length && header [j] != ';'; j++)
+				for (j = k; j < length && header [j] != ';' && header [j] != ','; j++)
 					;
 				pos = j;
 			} else {
 				begin = k;
-				while (k < length && header [k] != ';')
+				while (k < length && header [k] != ';' && header [k] != ',')
 					k++;
 				pos = k;
 			}
-				
+
 			return header.Substring (begin, k - begin).Trim ();
 		}
+
+		static bool IsWeekDay (string value)
+		{
+			foreach (string day in weekDays) {
+				if (value.ToLower ().Equals (day))
+					return true;
+			}
+			return false;
+		}
+
+		static string[] weekDays =
+			new string[] { "mon", "tue", "wed", "thu", "fri", "sat", "sun",
+				       "monday", "tuesday", "wednesday", "thursday",
+				       "friday", "saturday", "sunday" };
 
 		static string[] cookieExpiresFormats =
 			new string[] { "r",

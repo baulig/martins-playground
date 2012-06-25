@@ -6,9 +6,11 @@ namespace Test
 	{
 		public static void Main ()
 		{
-			var test = new CookieTest ();
-			test.TestExpires ();
-			test.TestInvalidCookie ();
+			var parser = new CookieParser (CookieTest.A);
+			string name, val;
+			while (parser.GetNextNameValue (out name, out val)) {
+				Console.WriteLine ("COOKIE: |{0}| -> |{1}|", name, val);
+			}
 		}
 	}
 }
