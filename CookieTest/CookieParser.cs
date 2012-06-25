@@ -33,6 +33,7 @@
 //
 
 using System;
+using System.Net;
 using System.Collections;
 using System.Globalization;
 
@@ -52,6 +53,18 @@ namespace Test {
 			this.header = header;
 			this.pos = position;
 			this.length = header.Length;
+		}
+
+		public void Parse (CookieCollection collection)
+		{
+			while (pos < length) {
+				var cookie = new Cookie ();
+				collection.Add (cookie);
+
+				cookie.Name = GetCookieName ();
+				if (pos >= length)
+					return;
+			}
 		}
 
 		public bool GetNextNameValue (out string name, out string val)

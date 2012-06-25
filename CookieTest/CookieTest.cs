@@ -15,6 +15,9 @@ namespace Test
 		public const string B = "A=B=C, expires=Sat, 99-Dec-01 01:00:00 XDT; Hello=World, Foo=Bar";
 		// Only the invariant culture is allowed.
 		public const string C = "Foo=Bar, expires=Montag, 21. Juni 2012 23:11:45";
+		// Only comma serves as separation character.
+		public const string D = "A=B, C=D; E=F, G=H";
+		public const string E = "A; C; expires=Mon, 21-Jun-14 23:45:00 GMT, E=F";
 
 		[Test]
 		public void TestExpires ()
@@ -40,6 +43,7 @@ namespace Test
 			Assert.AreEqual ("Foo", res.Cookies [0].Name);
 			Assert.AreEqual (0, res.Cookies [0].Expires.Ticks);
 			Assert.AreEqual ("expires", res.Cookies [1].Name);
+			Assert.AreEqual ("World", res.Cookies [1].Value);
 			Assert.AreEqual (635486643190000000, res.Cookies [1].Expires.ToUniversalTime ().Ticks);
 			Assert.AreEqual ("A", res.Cookies [2].Name);
 			Assert.AreEqual (0, res.Cookies [2].Expires.Ticks);
@@ -104,6 +108,53 @@ namespace Test
 			Assert.AreEqual ("Bar", res.Cookies [0].Value);
 			Assert.AreEqual ("expires", res.Cookies [1].Name);
 			Assert.AreEqual ("Montag", res.Cookies [1].Value);
+		}
+
+		[Test]
+		public void TestMultiple ()
+		{
+			HttpWebResponse res;
+			using (var listener = new Listener ("Set-Cookie: " + D)) {
+				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
+				req.CookieContainer = new CookieContainer ();
+				req.Method = "POST";
+				res = (HttpWebResponse)req.GetResponse ();
+			}
+
+			Assert.AreEqual (D, res.Headers.Get ("Set-Cookie"));
+
+			var values = res.Headers.GetValues ("Set-Cookie");
+			Assert.AreEqual (3, values.Length);
+			Assert.AreEqual ("A=B", values [0]);
+			Assert.AreEqual ("C=D; E=F", values [1]);
+			Assert.AreEqual ("G=H", values [2]);
+
+			Assert.AreEqual (3, res.Cookies.Count);
+			Assert.AreEqual ("A", res.Cookies [0].Name);
+			Assert.AreEqual ("B", res.Cookies [0].Value);
+			Assert.AreEqual ("C", res.Cookies [1].Name);
+			Assert.AreEqual ("D", res.Cookies [1].Value);
+			Assert.AreEqual ("G", res.Cookies [2].Name);
+			Assert.AreEqual ("H", res.Cookies [2].Value);
+		}
+
+		[Test]
+		public void TestMultiple2 ()
+		{
+			HttpWebResponse res;
+			using (var listener = new Listener ("Set-Cookie: " + E)) {
+				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
+				req.CookieContainer = new CookieContainer ();
+				req.Method = "POST";
+				res = (HttpWebResponse)req.GetResponse ();
+			}
+
+			Assert.AreEqual (2, res.Cookies.Count);
+			Assert.AreEqual ("A", res.Cookies [0].Name);
+			Assert.AreEqual (string.Empty, res.Cookies [0].Value);
+			Assert.AreEqual (635389911000000000, res.Cookies [0].Expires.ToUniversalTime ().Ticks);
+			Assert.AreEqual ("E", res.Cookies [1].Name);
+			Assert.AreEqual ("F", res.Cookies [1].Value);
 		}
 
 		public class Listener : IDisposable
