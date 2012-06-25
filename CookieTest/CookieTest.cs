@@ -4,60 +4,64 @@ using System.Net;
 using System.Net.Sockets;
 using NUnit.Framework;
 
-namespace Test2
+namespace Test
 {
 	[TestFixture]
 	public class CookieTest
 	{
-		const string A = "Set-Cookie: Foo=Bar, expires=World; expires=Sat, 11-Oct-14 22:45:19 GMT, A=B";
-		const string B = "Set-Cookie: A=B=C, expires=Sat, 99-Dec-01 01:00:00 XDT; Hello=World, Foo=Bar";
+		const string A = "Foo=Bar, expires=World; expires=Sat, 11-Oct-14 22:45:19 GMT, A=B";
+		const string B = "A=B=C, expires=Sat, 99-Dec-01 01:00:00 XDT; Hello=World, Foo=Bar";
 
 		[Test]
 		public void TestExpires ()
 		{
 			HttpWebResponse res;
-			using (var listener = new Listener (A)) {
+			using (var listener = new Listener ("Set-Cookie: " + A)) {
 				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
 				req.CookieContainer = new CookieContainer ();
 				req.Method = "POST";
 				res = (HttpWebResponse)req.GetResponse ();
 			}
 
+			Assert.AreEqual (A, res.Headers.Get ("Set-Cookie"));
+
 			var values = res.Headers.GetValues ("Set-Cookie");
-			Assert.That (values.Length == 4, "#1");
+			Assert.AreEqual (4, values.Length);
 			Assert.AreEqual ("Foo=Bar", values [0]);
 			Assert.AreEqual ("expires=World; expires=Sat", values [1]);
 			Assert.AreEqual ("11-Oct-14 22:45:19 GMT", values [2]);
 			Assert.AreEqual ("A=B", values [3]);
 
-			Assert.That (res.Cookies.Count == 3, "#2");
+			Assert.AreEqual (3, res.Cookies.Count);
 			Assert.AreEqual ("Foo", res.Cookies [0].Name);
-			Assert.That (res.Cookies [0].Expires.Ticks == 0, "#3");
+			Assert.AreEqual (0, res.Cookies [0].Expires.Ticks);
 			Assert.AreEqual ("expires", res.Cookies [1].Name);
 			Assert.AreEqual (635486643190000000, res.Cookies [1].Expires.ToUniversalTime ().Ticks);
 			Assert.AreEqual ("A", res.Cookies [2].Name);
-			Assert.That (res.Cookies [2].Expires.Ticks == 0, "#4");
+			Assert.AreEqual (0, res.Cookies [2].Expires.Ticks);
 		}
 
 		[Test]
 		public void TestInvalidCookie ()
 		{
 			HttpWebResponse res;
-			using (var listener = new Listener (B)) {
+			using (var listener = new Listener ("Set-Cookie: " + B)) {
 				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
 				req.CookieContainer = new CookieContainer ();
 				req.Method = "POST";
 				res = (HttpWebResponse)req.GetResponse ();
 			}
 
+			Assert.AreEqual (B, res.Headers.Get ("Set-Cookie"));
+
 			var values = res.Headers.GetValues ("Set-Cookie");
-			Assert.That (values.Length == 4, "#1");
+			Assert.AreEqual (4, values.Length);
 			Assert.AreEqual ("A=B=C", values [0]);
 			Assert.AreEqual ("expires=Sat", values [1]);
 			Assert.AreEqual ("99-Dec-01 01:00:00 XDT; Hello=World", values [2]);
 			Assert.AreEqual ("Foo=Bar", values [3]);
 
-			Assert.That (res.Cookies.Count == 3, "#2");
+			Assert.AreEqual (3, res.Cookies.Count);
 			Assert.AreEqual ("A", res.Cookies [0].Name);
 			Assert.AreEqual ("B=C", res.Cookies [0].Value);
 			Assert.AreEqual ("expires", res.Cookies [1].Name);
