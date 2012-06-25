@@ -19,18 +19,36 @@ namespace Test
 		public const string D = "A=B, C=D; E=F, G=H";
 		public const string E = "A; C; expires=Mon, 21-Jun-14 23:45:00 GMT, E=F";
 
-		[Test]
-		public void TestExpires ()
+		HttpWebResponse DoRequest (string header)
 		{
 			HttpWebResponse res;
-			using (var listener = new Listener ("Set-Cookie: " + A)) {
+			using (var listener = new Listener ("Set-Cookie: " + header)) {
 				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
 				req.CookieContainer = new CookieContainer ();
 				req.Method = "POST";
 				res = (HttpWebResponse)req.GetResponse ();
 			}
 
-			Assert.AreEqual (A, res.Headers.Get ("Set-Cookie"));
+			Assert.AreEqual (header, res.Headers.Get ("Set-Cookie"));
+			return res;
+		}
+
+		void AssertCookie (Cookie cookie, string name, string value, long ticks)
+		{
+			AssertCookie (cookie, name, value);
+			Assert.AreEqual (ticks, cookie.Expires.ToUniversalTime ().Ticks);
+		}
+
+		void AssertCookie (Cookie cookie, string name, string value)
+		{
+			Assert.AreEqual (name, cookie.Name);
+			Assert.AreEqual (value, cookie.Value);
+		}
+
+		[Test]
+		public void TestExpires ()
+		{
+			var res = DoRequest (A);
 
 			var values = res.Headers.GetValues ("Set-Cookie");
 			Assert.AreEqual (4, values.Length);
@@ -40,27 +58,15 @@ namespace Test
 			Assert.AreEqual ("A=B", values [3]);
 
 			Assert.AreEqual (3, res.Cookies.Count);
-			Assert.AreEqual ("Foo", res.Cookies [0].Name);
-			Assert.AreEqual (0, res.Cookies [0].Expires.Ticks);
-			Assert.AreEqual ("expires", res.Cookies [1].Name);
-			Assert.AreEqual ("World", res.Cookies [1].Value);
-			Assert.AreEqual (635486643190000000, res.Cookies [1].Expires.ToUniversalTime ().Ticks);
-			Assert.AreEqual ("A", res.Cookies [2].Name);
-			Assert.AreEqual (0, res.Cookies [2].Expires.Ticks);
+			AssertCookie (res.Cookies [0], "Foo", "Bar", 0);
+			AssertCookie (res.Cookies [1], "expires", "World", 635486643190000000);
+			AssertCookie (res.Cookies [2], "A", "B", 0);
 		}
 
 		[Test]
 		public void TestInvalidCookie ()
 		{
-			HttpWebResponse res;
-			using (var listener = new Listener ("Set-Cookie: " + B)) {
-				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
-				req.CookieContainer = new CookieContainer ();
-				req.Method = "POST";
-				res = (HttpWebResponse)req.GetResponse ();
-			}
-
-			Assert.AreEqual (B, res.Headers.Get ("Set-Cookie"));
+			var res = DoRequest (B);
 
 			var values = res.Headers.GetValues ("Set-Cookie");
 			Assert.AreEqual (4, values.Length);
@@ -70,12 +76,9 @@ namespace Test
 			Assert.AreEqual ("Foo=Bar", values [3]);
 
 			Assert.AreEqual (3, res.Cookies.Count);
-			Assert.AreEqual ("A", res.Cookies [0].Name);
-			Assert.AreEqual ("B=C", res.Cookies [0].Value);
-			Assert.AreEqual ("expires", res.Cookies [1].Name);
-			Assert.AreEqual ("Sat", res.Cookies [1].Value);
-			Assert.AreEqual ("Foo", res.Cookies [2].Name);
-			Assert.AreEqual ("Bar", res.Cookies [2].Value);
+			AssertCookie (res.Cookies [0], "A", "B=C");
+			AssertCookie (res.Cookies [1], "expires", "Sat");
+			AssertCookie (res.Cookies [2], "Foo", "Bar");
 		}
 
 		[Test]
@@ -93,35 +96,17 @@ namespace Test
 
 		void DoTestLocalCulture ()
 		{
-			HttpWebResponse res;
-			using (var listener = new Listener ("Set-Cookie: " + C)) {
-				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
-				req.CookieContainer = new CookieContainer ();
-				req.Method = "POST";
-				res = (HttpWebResponse)req.GetResponse ();
-			}
-
-			Assert.AreEqual (C, res.Headers.Get ("Set-Cookie"));
+			var res = DoRequest (C);
 
 			Assert.AreEqual (2, res.Cookies.Count);
-			Assert.AreEqual ("Foo", res.Cookies [0].Name);
-			Assert.AreEqual ("Bar", res.Cookies [0].Value);
-			Assert.AreEqual ("expires", res.Cookies [1].Name);
-			Assert.AreEqual ("Montag", res.Cookies [1].Value);
+			AssertCookie (res.Cookies [0], "Foo", "Bar");
+			AssertCookie (res.Cookies [1], "expires", "Montag");
 		}
 
 		[Test]
 		public void TestMultiple ()
 		{
-			HttpWebResponse res;
-			using (var listener = new Listener ("Set-Cookie: " + D)) {
-				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
-				req.CookieContainer = new CookieContainer ();
-				req.Method = "POST";
-				res = (HttpWebResponse)req.GetResponse ();
-			}
-
-			Assert.AreEqual (D, res.Headers.Get ("Set-Cookie"));
+			var res = DoRequest (D);
 
 			var values = res.Headers.GetValues ("Set-Cookie");
 			Assert.AreEqual (3, values.Length);
@@ -130,31 +115,19 @@ namespace Test
 			Assert.AreEqual ("G=H", values [2]);
 
 			Assert.AreEqual (3, res.Cookies.Count);
-			Assert.AreEqual ("A", res.Cookies [0].Name);
-			Assert.AreEqual ("B", res.Cookies [0].Value);
-			Assert.AreEqual ("C", res.Cookies [1].Name);
-			Assert.AreEqual ("D", res.Cookies [1].Value);
-			Assert.AreEqual ("G", res.Cookies [2].Name);
-			Assert.AreEqual ("H", res.Cookies [2].Value);
+			AssertCookie (res.Cookies [0], "A", "B");
+			AssertCookie (res.Cookies [1], "C", "D");
+			AssertCookie (res.Cookies [2], "G", "H");
 		}
 
 		[Test]
 		public void TestMultiple2 ()
 		{
-			HttpWebResponse res;
-			using (var listener = new Listener ("Set-Cookie: " + E)) {
-				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
-				req.CookieContainer = new CookieContainer ();
-				req.Method = "POST";
-				res = (HttpWebResponse)req.GetResponse ();
-			}
+			var res = DoRequest (E);
 
 			Assert.AreEqual (2, res.Cookies.Count);
-			Assert.AreEqual ("A", res.Cookies [0].Name);
-			Assert.AreEqual (string.Empty, res.Cookies [0].Value);
-			Assert.AreEqual (635389911000000000, res.Cookies [0].Expires.ToUniversalTime ().Ticks);
-			Assert.AreEqual ("E", res.Cookies [1].Name);
-			Assert.AreEqual ("F", res.Cookies [1].Value);
+			AssertCookie (res.Cookies [0], "A", string.Empty, 635389911000000000);
+			AssertCookie (res.Cookies [1], "E", "F");
 		}
 
 		public class Listener : IDisposable

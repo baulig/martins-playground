@@ -35,6 +35,7 @@
 using System;
 using System.Net;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace Test {
@@ -55,15 +56,120 @@ namespace Test {
 			this.length = header.Length;
 		}
 
-		public void Parse (CookieCollection collection)
+		public IEnumerable<Cookie> Parse ()
 		{
 			while (pos < length) {
-				var cookie = new Cookie ();
-				collection.Add (cookie);
+				yield return DoParse ();
+			}
+		}
 
-				cookie.Name = GetCookieName ();
+		Cookie DoParse ()
+		{
+			var name = GetCookieName ();
+			if (pos >= length)
+				return new Cookie (name, string.Empty);
+
+			var value = string.Empty;
+			if (header [pos] == '=') {
+				pos++;
+				value = GetCookieValue ();
+			}
+
+			Console.WriteLine ("DO PARSE: |{0}|{1}| - {2},{3}",
+			                   name, value, pos, length);
+
+			var cookie = new Cookie (name, value);
+
+			if (pos >= length) {
+				return cookie;
+			} else if (header [pos] == ',') {
+				pos++;
+				return cookie;
+			} else if ((header [pos++] != ';') || (pos >= length)) {
+				return cookie;
+			}
+
+			while (pos < length) {
+				var argName = GetCookieName ();
+				string argVal = string.Empty;
+				if ((pos < length) && (header [pos] == '=')) {
+					pos++;
+					argVal = GetCookieValue ();
+				}
+				ProcessArg (cookie, argName, argVal);
+
 				if (pos >= length)
-					return;
+					break;
+				if (header [pos] == ',') {
+					pos++;
+					break;
+				} else if (header [pos] != ';') {
+					break;
+				}
+			}
+
+			return cookie;
+		}
+
+		void ProcessArg (Cookie cookie, string name, string val)
+		{
+			Console.WriteLine ("PROCESS ARG: |{0}|{1}|", name, val);
+
+			name = name.ToUpper ();
+			switch (name) {
+			case "COMMENT":
+				if (cookie.Comment == null)
+					cookie.Comment = val;
+				break;
+			case "COMMENTURL":
+				if (cookie.CommentUri == null)
+					cookie.CommentUri = new Uri (val);
+				break;
+			case "DISCARD":
+				cookie.Discard = true;
+				break;
+			case "DOMAIN":
+				if (cookie.Domain == "")
+					cookie.Domain = val;
+				break;
+			case "HTTPONLY":
+				cookie.HttpOnly = true;
+				break;
+			case "MAX-AGE": // RFC Style Set-Cookie2
+				if (cookie.Expires == DateTime.MinValue) {
+					try {
+					cookie.Expires = cookie.TimeStamp.AddSeconds (UInt32.Parse (val));
+					} catch {}
+				}
+				break;
+			case "EXPIRES": // Netscape Style Set-Cookie
+				if (cookie.Expires != DateTime.MinValue)
+					break;
+
+				if ((pos < length) && (header [pos] == ',') && IsWeekDay (val)) {
+					pos++;
+					val = val + ", " + GetCookieValue ();
+				}
+
+				Console.WriteLine ("EXPIRES: |{0}|", val);
+
+				cookie.Expires = CookieParser.TryParseCookieExpires (val);
+				break;
+			case "PATH":
+				cookie.Path = val;
+				break;
+			case "PORT":
+				if (cookie.Port == null)
+					cookie.Port = val;
+				break;
+			case "SECURE":
+				cookie.Secure = true;
+				break;
+			case "VERSION":
+				try {
+					cookie.Version = (int) UInt32.Parse (val);
+				} catch {}
+				break;
 			}
 		}
 

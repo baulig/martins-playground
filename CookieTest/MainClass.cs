@@ -7,9 +7,9 @@ namespace Test
 		public static void Main ()
 		{
 			var parser = new CookieParser (CookieTest.A);
-			string name, val;
-			while (parser.GetNextNameValue (out name, out val)) {
-				Console.WriteLine ("COOKIE: |{0}| -> |{1}|", name, val);
+			foreach (var cookie in parser.Parse ()) {
+				Console.WriteLine ("COOKIE: |{0}| -> |{1}|",
+				                   cookie.Name, cookie.Value);
 			}
 		}
 	}
