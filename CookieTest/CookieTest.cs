@@ -19,7 +19,7 @@ namespace Test
 		public const string D = "A=B, C=D; E=F, G=H";
 		public const string E = "A; C; expires=Mon, 21-Jun-14 23:45:00 GMT, E=F";
 
-		HttpWebResponse DoRequest (string header)
+		CookieCollection DoRequest (string header)
 		{
 			HttpWebResponse res;
 			using (var listener = new Listener ("Set-Cookie: " + header)) {
@@ -30,7 +30,7 @@ namespace Test
 			}
 
 			Assert.AreEqual (header, res.Headers.Get ("Set-Cookie"));
-			return res;
+			return res.Cookies;
 		}
 
 		void AssertCookie (Cookie cookie, string name, string value, long ticks)
@@ -48,37 +48,41 @@ namespace Test
 		[Test]
 		public void TestExpires ()
 		{
-			var res = DoRequest (A);
+			var cookies = DoRequest (A);
 
+#if CHECK_HEADERS
 			var values = res.Headers.GetValues ("Set-Cookie");
 			Assert.AreEqual (4, values.Length);
 			Assert.AreEqual ("Foo=Bar", values [0]);
 			Assert.AreEqual ("expires=World; expires=Sat", values [1]);
 			Assert.AreEqual ("11-Oct-14 22:45:19 GMT", values [2]);
 			Assert.AreEqual ("A=B", values [3]);
+#endif
 
-			Assert.AreEqual (3, res.Cookies.Count);
-			AssertCookie (res.Cookies [0], "Foo", "Bar", 0);
-			AssertCookie (res.Cookies [1], "expires", "World", 635486643190000000);
-			AssertCookie (res.Cookies [2], "A", "B", 0);
+			Assert.AreEqual (3, cookies.Count);
+			AssertCookie (cookies [0], "Foo", "Bar", 0);
+			AssertCookie (cookies [1], "expires", "World", 635486643190000000);
+			AssertCookie (cookies [2], "A", "B", 0);
 		}
 
 		[Test]
 		public void TestInvalidCookie ()
 		{
-			var res = DoRequest (B);
+			var cookies = DoRequest (B);
 
+#if CHECK_HEADERS
 			var values = res.Headers.GetValues ("Set-Cookie");
 			Assert.AreEqual (4, values.Length);
 			Assert.AreEqual ("A=B=C", values [0]);
 			Assert.AreEqual ("expires=Sat", values [1]);
 			Assert.AreEqual ("99-Dec-01 01:00:00 XDT; Hello=World", values [2]);
 			Assert.AreEqual ("Foo=Bar", values [3]);
+#endif
 
-			Assert.AreEqual (3, res.Cookies.Count);
-			AssertCookie (res.Cookies [0], "A", "B=C");
-			AssertCookie (res.Cookies [1], "expires", "Sat");
-			AssertCookie (res.Cookies [2], "Foo", "Bar");
+			Assert.AreEqual (3, cookies.Count);
+			AssertCookie (cookies [0], "A", "B=C");
+			AssertCookie (cookies [1], "expires", "Sat");
+			AssertCookie (cookies [2], "Foo", "Bar");
 		}
 
 		[Test]
@@ -88,46 +92,42 @@ namespace Test
 			try {
 				var culture = new CultureInfo ("de-DE");
 				Thread.CurrentThread.CurrentCulture = culture;
-				DoTestLocalCulture ();
+
+				var cookies = DoRequest (C);
+				Assert.AreEqual (2, cookies.Count);
+				AssertCookie (cookies [0], "Foo", "Bar");
+				AssertCookie (cookies [1], "expires", "Montag");
 			} finally {
 				Thread.CurrentThread.CurrentCulture = old;
 			}
 		}
 
-		void DoTestLocalCulture ()
-		{
-			var res = DoRequest (C);
-
-			Assert.AreEqual (2, res.Cookies.Count);
-			AssertCookie (res.Cookies [0], "Foo", "Bar");
-			AssertCookie (res.Cookies [1], "expires", "Montag");
-		}
-
 		[Test]
 		public void TestMultiple ()
 		{
-			var res = DoRequest (D);
+			var cookies = DoRequest (D);
 
+#if CHECK_HEADERS
 			var values = res.Headers.GetValues ("Set-Cookie");
 			Assert.AreEqual (3, values.Length);
 			Assert.AreEqual ("A=B", values [0]);
 			Assert.AreEqual ("C=D; E=F", values [1]);
 			Assert.AreEqual ("G=H", values [2]);
+#endif
 
-			Assert.AreEqual (3, res.Cookies.Count);
-			AssertCookie (res.Cookies [0], "A", "B");
-			AssertCookie (res.Cookies [1], "C", "D");
-			AssertCookie (res.Cookies [2], "G", "H");
+			Assert.AreEqual (3, cookies.Count);
+			AssertCookie (cookies [0], "A", "B");
+			AssertCookie (cookies [1], "C", "D");
+			AssertCookie (cookies [2], "G", "H");
 		}
 
 		[Test]
 		public void TestMultiple2 ()
 		{
-			var res = DoRequest (E);
-
-			Assert.AreEqual (2, res.Cookies.Count);
-			AssertCookie (res.Cookies [0], "A", string.Empty, 635389911000000000);
-			AssertCookie (res.Cookies [1], "E", "F");
+			var cookies = DoRequest (E);
+			Assert.AreEqual (2, cookies.Count);
+			AssertCookie (cookies [0], "A", string.Empty, 635389911000000000);
+			AssertCookie (cookies [1], "E", "F");
 		}
 
 		public class Listener : IDisposable
