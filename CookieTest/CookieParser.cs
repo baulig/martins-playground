@@ -84,9 +84,6 @@ namespace Test {
 				value = GetCookieValue ();
 			}
 
-			Console.WriteLine ("DO PARSE: |{0}|{1}| - {2},{3}",
-			                   name, value, pos, length);
-
 			var cookie = new Cookie (name, value);
 
 			if (pos >= length) {
@@ -124,8 +121,6 @@ namespace Test {
 
 		void ProcessArg (Cookie cookie, string name, string val)
 		{
-			Console.WriteLine ("PROCESS ARG: |{0}|{1}|", name, val);
-
 			if ((name == null) || (name == string.Empty))
 				throw new InvalidOperationException ();
 
@@ -165,8 +160,6 @@ namespace Test {
 					val = val + ", " + GetCookieValue ();
 				}
 
-				Console.WriteLine ("EXPIRES: |{0}|", val);
-
 				cookie.Expires = CookieParser.TryParseCookieExpires (val);
 				break;
 			case "PATH":
@@ -185,45 +178,6 @@ namespace Test {
 				} catch {}
 				break;
 			}
-		}
-
-		public bool GetNextNameValue (out string name, out string val)
-		{
-			name = null;
-			val = null;
-
-			if (pos >= length)
-				return false;
-
-			name = GetCookieName ();
-			if (pos >= length)
-				return true;
-
-			if (header [pos] == ';' || header [pos] == ',') {
-				pos++;
-				return true;
-			} else if (header [pos] != '=') {
-				// Should never happen
-				return false;
-			}
-
-			pos++;
-			val = GetCookieValue ();
-
-			if (pos >= length)
-				return true;
-
-			if (name.ToLower ().Equals ("expires")) {
-				if ((header [pos] == ',') && IsWeekDay (val) && (pos +1 < length)) {
-					pos++;
-					val = val + ", " + GetCookieValue ();
-				}
-			}
-
-			if (pos < length && (header [pos] == ';' || header [pos] == ','))
-				pos++;
-
-			return true;
 		}
 
 		string GetCookieName ()
@@ -289,7 +243,7 @@ namespace Test {
 					"ddd, dd'-'MMM'-'yyyy HH':'mm':'ss 'GMT'",
 					"ddd, dd'-'MMM'-'yy HH':'mm':'ss 'GMT'" };
 
-		static public DateTime TryParseCookieExpires (string value)
+		static DateTime TryParseCookieExpires (string value)
 		{
 			if (String.IsNullOrEmpty (value))
 				return DateTime.MinValue;

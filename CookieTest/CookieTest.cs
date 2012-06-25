@@ -78,16 +78,6 @@ namespace Test
 		public void TestExpires ()
 		{
 			var cookies = DoRequest (A);
-
-#if CHECK_HEADERS
-			var values = res.Headers.GetValues ("Set-Cookie");
-			Assert.AreEqual (4, values.Length);
-			Assert.AreEqual ("Foo=Bar", values [0]);
-			Assert.AreEqual ("expires=World; expires=Sat", values [1]);
-			Assert.AreEqual ("11-Oct-14 22:45:19 GMT", values [2]);
-			Assert.AreEqual ("A=B", values [3]);
-#endif
-
 			Assert.AreEqual (3, cookies.Count);
 			AssertCookie (cookies [0], "Foo", "Bar", 0);
 			AssertCookie (cookies [1], "expires", "World", 635486643190000000);
@@ -98,16 +88,6 @@ namespace Test
 		public void TestInvalidCookie ()
 		{
 			var cookies = DoRequest (B);
-
-#if CHECK_HEADERS
-			var values = res.Headers.GetValues ("Set-Cookie");
-			Assert.AreEqual (4, values.Length);
-			Assert.AreEqual ("A=B=C", values [0]);
-			Assert.AreEqual ("expires=Sat", values [1]);
-			Assert.AreEqual ("99-Dec-01 01:00:00 XDT; Hello=World", values [2]);
-			Assert.AreEqual ("Foo=Bar", values [3]);
-#endif
-
 			Assert.AreEqual (3, cookies.Count);
 			AssertCookie (cookies [0], "A", "B=C");
 			AssertCookie (cookies [1], "expires", "Sat");
@@ -135,15 +115,6 @@ namespace Test
 		public void TestMultiple ()
 		{
 			var cookies = DoRequest (D);
-
-#if CHECK_HEADERS
-			var values = res.Headers.GetValues ("Set-Cookie");
-			Assert.AreEqual (3, values.Length);
-			Assert.AreEqual ("A=B", values [0]);
-			Assert.AreEqual ("C=D; E=F", values [1]);
-			Assert.AreEqual ("G=H", values [2]);
-#endif
-
 			Assert.AreEqual (3, cookies.Count);
 			AssertCookie (cookies [0], "A", "B");
 			AssertCookie (cookies [1], "C", "D");
