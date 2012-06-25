@@ -115,6 +115,9 @@ namespace Test {
 		{
 			Console.WriteLine ("PROCESS ARG: |{0}|{1}|", name, val);
 
+			if ((name == null) || (name == string.Empty))
+				throw new InvalidOperationException ();
+
 			name = name.ToUpper ();
 			switch (name) {
 			case "COMMENT":

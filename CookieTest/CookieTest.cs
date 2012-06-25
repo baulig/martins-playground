@@ -21,6 +21,7 @@ namespace Test
 
 		CookieCollection DoRequest (string header)
 		{
+#if USE_WEB
 			HttpWebResponse res;
 			using (var listener = new Listener ("Set-Cookie: " + header)) {
 				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
@@ -31,6 +32,13 @@ namespace Test
 
 			Assert.AreEqual (header, res.Headers.Get ("Set-Cookie"));
 			return res.Cookies;
+#else
+			var cookies = new CookieCollection ();
+			var parser = new CookieParser (header);
+			foreach (var cookie in parser.Parse ())
+				cookies.Add (cookie);
+			return cookies;
+#endif
 		}
 
 		void AssertCookie (Cookie cookie, string name, string value, long ticks)

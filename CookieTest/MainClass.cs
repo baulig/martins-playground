@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using NUnit.Framework;
 
 namespace Test
 {
@@ -6,10 +8,17 @@ namespace Test
 	{
 		public static void Main ()
 		{
-			var parser = new CookieParser (CookieTest.A);
-			foreach (var cookie in parser.Parse ()) {
-				Console.WriteLine ("COOKIE: |{0}| -> |{1}|",
-				                   cookie.Name, cookie.Value);
+			var test = new CookieTest ();
+			var klass = test.GetType ();
+
+			var bf = BindingFlags.Instance | BindingFlags.Public;
+			foreach (var method in klass.GetMethods (bf)) {
+				var cattr = method.GetCustomAttributes (typeof(TestAttribute), false);
+				if ((cattr == null) || (cattr.Length != 1))
+					continue;
+
+				Console.WriteLine ("INVOKING: {0}", method.Name);
+				method.Invoke (test, null);
 			}
 		}
 	}
