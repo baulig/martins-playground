@@ -18,7 +18,7 @@ namespace Test
 					continue;
 
 				Console.WriteLine ("INVOKING: {0}", method.Name);
-				method.Invoke (test, null);
+					method.Invoke (test, null);
 			}
 		}
 	}

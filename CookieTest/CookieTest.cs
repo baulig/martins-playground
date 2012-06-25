@@ -17,7 +17,7 @@ namespace Test
 		public const string C = "Foo=Bar, expires=Montag, 21. Juni 2012 23:11:45";
 		// Only comma serves as separation character.
 		public const string D = "A=B, C=D; E=F, G=H";
-		public const string E = "A; C; expires=Mon, 21-Jun-14 23:45:00 GMT, E=F";
+		public const string E = "A; C; expires=Tue, 25-Jun-19 00:51:34 GMT, E=F";
 
 		CookieCollection DoRequest (string header)
 		{
@@ -51,6 +51,27 @@ namespace Test
 		{
 			Assert.AreEqual (name, cookie.Name);
 			Assert.AreEqual (value, cookie.Value);
+		}
+
+		[Test]
+		public void TestDate ()
+		{
+			var d1 = "Sat, 11-Oct-14 22:45:19 GMT";
+			var d2 = "Tue, 25-Jun-19 00:51:34 GMT";
+
+			var format = "ddd, dd'-'MMM'-'yy HH':'mm':'ss 'GMT'";
+			var p1 = DateTime.ParseExact (d1, format, CultureInfo.InvariantCulture);
+			p1 = DateTime.SpecifyKind (p1, DateTimeKind.Utc);
+
+			Assert.AreEqual ("10/11/2014 22:45:19", p1.ToString ("G", CultureInfo.InvariantCulture));
+			Assert.AreEqual (p1.Ticks, p1.ToUniversalTime ().Ticks);
+			Assert.AreEqual (635486643190000000, p1.Ticks);
+
+			var p2 = DateTime.ParseExact (d2, format, CultureInfo.InvariantCulture);
+			p2 = DateTime.SpecifyKind (p2, DateTimeKind.Utc);
+			Assert.AreEqual ("06/25/2019 00:51:34", p2.ToString ("G", CultureInfo.InvariantCulture));
+			Assert.AreEqual (p2.Ticks, p2.ToUniversalTime ().Ticks);
+			Assert.AreEqual (636970206940000000, p2.Ticks);
 		}
 
 		[Test]
@@ -134,7 +155,7 @@ namespace Test
 		{
 			var cookies = DoRequest (E);
 			Assert.AreEqual (2, cookies.Count);
-			AssertCookie (cookies [0], "A", string.Empty, 635389911000000000);
+			AssertCookie (cookies [0], "A", string.Empty, 636970206940000000);
 			AssertCookie (cookies [1], "E", "F");
 		}
 
