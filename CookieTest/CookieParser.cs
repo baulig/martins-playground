@@ -59,7 +59,16 @@ namespace Test {
 		public IEnumerable<Cookie> Parse ()
 		{
 			while (pos < length) {
-				yield return DoParse ();
+				Cookie cookie;
+				try {
+					cookie = DoParse ();
+				} catch {
+					while ((pos < length) && (header [pos] != ','))
+						pos++;
+					pos++;
+					continue;
+				}
+				yield return cookie;
 			}
 		}
 
@@ -106,6 +115,8 @@ namespace Test {
 				} else if (header [pos] != ';') {
 					break;
 				}
+
+				pos++;
 			}
 
 			return cookie;
