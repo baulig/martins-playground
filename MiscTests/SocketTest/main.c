@@ -6,16 +6,19 @@
 
 int main (int argc, char *argv[])
 {
-	int sock = socket (PF_INET6, SOCK_STREAM, 0);
+	int sock = socket (PF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	printf ("SOCKET: %d\n", sock);
 	
 	struct sockaddr_in6 saddr;
 	memset (&saddr, 0, sizeof (saddr));
 	saddr.sin6_family = PF_INET6;
-	saddr.sin6_port = 65535;
+	saddr.sin6_port = htons (8888);
 	
 	int ret = bind (sock, (struct sockaddr*)&saddr, sizeof (saddr));
 	printf ("BIND: %d\n", ret);
+	
+	ret = listen (sock, 1);
+	printf ("LISTEN: %d\n", ret);
 	
 	struct sockaddr_in6 addr;
 	socklen_t addr_len = sizeof (addr);
@@ -29,6 +32,9 @@ int main (int argc, char *argv[])
 		printf ("%x", addr.sin6_addr.s6_addr [i]);
 	}
 	printf ("\n");
+	
+	int accepted = accept (sock, (struct sockaddr*)&addr, &addr_len);
+	printf ("ACCEPT: %d\n", accepted);
 	
 	return 0;
 }

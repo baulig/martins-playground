@@ -14,7 +14,10 @@ namespace MiscTests
 			Assert.AreEqual (IPAddress.IPv6Any, ep.Address);
 
 			Console.WriteLine (IPAddress.IPv6Any.ScopeId);
-			var addr = new IPAddress (new byte [16], 99);
+			var data = new byte [16];
+			data [10] = 0xff;
+			data [11] = 0xff;
+			var addr = new IPAddress (data, 0);
 			Console.WriteLine (addr);
 		}
 
