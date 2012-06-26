@@ -6,7 +6,7 @@
     <ProductVersion>10.0.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C52C8D3B-D7CF-49D9-B934-EA014241F337}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>Test</RootNamespace>
     <AssemblyName>CookieTest</AssemblyName>
   </PropertyGroup>
@@ -38,9 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="CookieTest.cs" />
-    <Compile Include="CookieParser.cs" />
-    <Compile Include="MainClass.cs" />
+    <Compile Include="CookieParserTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

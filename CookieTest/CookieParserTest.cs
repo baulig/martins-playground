@@ -6,10 +6,10 @@ using System.Net;
 using System.Net.Sockets;
 using NUnit.Framework;
 
-namespace Test
+namespace MonoTests.System.Net
 {
 	[TestFixture]
-	public class CookieTest
+	public class CookieParserTest
 	{
 		public const string A = "Foo=Bar, expires=World; expires=Sat, 11-Oct-14 22:45:19 GMT, A=B";
 		public const string B = "A=B=C, expires=Sat, 99-Dec-01 01:00:00 XDT; Hello=World, Foo=Bar";
@@ -21,7 +21,6 @@ namespace Test
 
 		CookieCollection DoRequest (string header)
 		{
-#if USE_WEB
 			HttpWebResponse res;
 			using (var listener = new Listener ("Set-Cookie: " + header)) {
 				var req = (HttpWebRequest)HttpWebRequest.Create (listener.URI);
@@ -32,13 +31,6 @@ namespace Test
 
 			Assert.AreEqual (header, res.Headers.Get ("Set-Cookie"));
 			return res.Cookies;
-#else
-			var cookies = new CookieCollection ();
-			var parser = new CookieParser (header);
-			foreach (var cookie in parser.Parse ())
-				cookies.Add (cookie);
-			return cookies;
-#endif
 		}
 
 		void AssertCookie (Cookie cookie, string name, string value, long ticks)
