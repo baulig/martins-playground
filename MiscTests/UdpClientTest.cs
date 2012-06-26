@@ -312,6 +312,8 @@ namespace MonoTests.System.Net.Sockets {
 #endif
 			localEP = s.LocalEndPoint as IPEndPoint;
 			Assert.IsNotNull (localEP, "#B:Client:LocalEndpoint");
+			var addr = localEP.Address;
+			Console.WriteLine ("TEST ADDR: {0} {1} - {2:x}", IPAddress.IPv6Any, addr, addr.ScopeId);
 			Assert.AreEqual (IPAddress.IPv6Any, localEP.Address, "#B:Client:LocalEndPoint/Address");
 			Assert.AreEqual (AddressFamily.InterNetworkV6, localEP.AddressFamily, "#B:Client:LocalEndPoint/AddressFamily");
 			Assert.AreEqual (IPEndPoint.MaxPort, localEP.Port, "#B:Client:LocalEndPoint/Port");

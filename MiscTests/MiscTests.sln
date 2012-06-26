@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscTests", "MiscTests.csproj", "{1ADB93DD-80AD-47CC-AC79-1940095A69AD}"
 EndProject
+Project("{2857B73E-F847-4B02-9238-064979017E93}") = "SocketTest", "SocketTest\SocketTest.cproj", "{29E356C0-E953-44A5-9B67-1D72853E4A29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,6 +15,10 @@ Global
 		{1ADB93DD-80AD-47CC-AC79-1940095A69AD}.Debug|x86.Build.0 = Debug|x86
 		{1ADB93DD-80AD-47CC-AC79-1940095A69AD}.Release|x86.ActiveCfg = Release|x86
 		{1ADB93DD-80AD-47CC-AC79-1940095A69AD}.Release|x86.Build.0 = Release|x86
+		{29E356C0-E953-44A5-9B67-1D72853E4A29}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{29E356C0-E953-44A5-9B67-1D72853E4A29}.Debug|x86.Build.0 = Debug|Any CPU
+		{29E356C0-E953-44A5-9B67-1D72853E4A29}.Release|x86.ActiveCfg = Release|Any CPU
+		{29E356C0-E953-44A5-9B67-1D72853E4A29}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = MiscTests.csproj
