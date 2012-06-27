@@ -8,30 +8,22 @@ namespace MiscTests
 {
 	public class MainClass
 	{
-		public static void IPv6Test ()
-		{
-			var ep = new IPEndPoint (IPAddress.IPv6Any, IPEndPoint.MaxPort);
-			Assert.AreEqual (IPAddress.IPv6Any, ep.Address);
-
-			Console.WriteLine (IPAddress.IPv6Any.ScopeId);
-			var data = new byte [16];
-			data [10] = 0xff;
-			data [11] = 0xff;
-			var addr = new IPAddress (data, 0);
-			Console.WriteLine (addr);
-		}
-
 		public static void Main (string[] args)
 		{
-			var ep = new IPEndPoint (IPAddress.IPv6Any, IPEndPoint.MaxPort);
-			Console.WriteLine ("TEST: {0} {1}", IPAddress.IPv6Any, ep.Address);
+			foreach (var addr in Dns.GetHostAddresses ("localhost")) {
+				Console.WriteLine ("LOCALHOST: {0}", addr);
+			}
+			Console.WriteLine ();
 
-			IPv6Test ();
-
-			Console.WriteLine ("OK");
+			var entry = Dns.GetHostEntry (string.Empty);
+			Console.WriteLine ("HOST ENTRY: {0} {1}", entry, entry.HostName);
+			foreach (var addr in entry.AddressList)
+				Console.WriteLine ("HOST ADDR: {0}", addr);
+			foreach (var alias in entry.Aliases)
+				Console.WriteLine ("HOST ALIAS: {0}", alias);
 
 			var test = new UdpClientTest ();
-			test.Constructor5 ();
+			test.JoinMulticastGroup1_IPv6 ();
 		}
 	}
 }

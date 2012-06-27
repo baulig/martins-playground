@@ -1,40 +1,28 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
 int main (int argc, char *argv[])
 {
-	int sock = socket (PF_INET6, SOCK_STREAM, IPPROTO_TCP);
+	int sock = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	printf ("SOCKET: %d\n", sock);
-	
-	struct sockaddr_in6 saddr;
+
+	struct sockaddr_in saddr;
 	memset (&saddr, 0, sizeof (saddr));
-	saddr.sin6_family = PF_INET6;
-	saddr.sin6_port = htons (8888);
+	saddr.sin_family = PF_INET;
+	saddr.sin_port = htons (1);
+	saddr.sin_addr.s_addr = inet_addr ("127.0.0.1");
 	
-	int ret = bind (sock, (struct sockaddr*)&saddr, sizeof (saddr));
-	printf ("BIND: %d\n", ret);
+	int ret = connect (sock, (struct sockaddr*)&saddr, sizeof (saddr));
+	printf ("CONNECT: %d - %s\n", ret, strerror (errno));
 	
-	ret = listen (sock, 1);
-	printf ("LISTEN: %d\n", ret);
+	char buffer [1024];
+	ret = recv (sock, buffer, 1024, 0);
 	
-	struct sockaddr_in6 addr;
-	socklen_t addr_len = sizeof (addr);
-	ret = getsockname (sock, (struct sockaddr*)&addr, &addr_len);
-	printf ("SOCK NAME: %d\n", ret);
-	
-	int i;
-	for (i = 0; i < 16; i++) {
-		if (i && ((i % 2) == 0))
-			printf (":");
-		printf ("%x", addr.sin6_addr.s6_addr [i]);
-	}
-	printf ("\n");
-	
-	int accepted = accept (sock, (struct sockaddr*)&addr, &addr_len);
-	printf ("ACCEPT: %d\n", accepted);
+	printf ("RECV: %d\n", ret);
 	
 	return 0;
 }
