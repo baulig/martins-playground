@@ -1,8 +1,5 @@
 using System;
-using System.Net;
-using System.Net.Sockets;
 using NUnit.Framework;
-using MonoTests.System.Net.Sockets;
 
 namespace MiscTests
 {
@@ -10,6 +7,8 @@ namespace MiscTests
 	{
 		public static void Main (string[] args)
 		{
+			var test = new MonoTests.System.Net.Sockets.SocketTest ();
+			test.ConnectedProperty ();
 		}
 	}
 }
