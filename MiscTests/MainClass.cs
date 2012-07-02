@@ -7,8 +7,8 @@ namespace MiscTests
 	{
 		public static void Main (string[] args)
 		{
-			var test = new MonoTests.System.Net.Sockets.SocketTest ();
-			test.ConnectedProperty ();
+			var a = new Uri ("http://[fe80::1]/");
+			Console.WriteLine (a);
 		}
 	}
 }

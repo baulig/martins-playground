@@ -41,7 +41,6 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="MainClass.cs" />
-    <Compile Include="SocketTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
